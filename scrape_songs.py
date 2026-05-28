@@ -4,9 +4,9 @@ from pprint import pformat
 from time import sleep
 
 BASE_URL = "https://cs.uwaterloo.ca/~dtompkin/music/bpm/{bpm}.html"
-START_BPM = 135
-END_BPM = 150
-MAX_SONGS_PER_BPM = 10
+START_BPM = 100
+END_BPM = 170
+MAX_SONGS_PER_BPM = 20
 headers = {"User-Agent": "Mozilla/5.0"}
 songs = []
 def scrape_bpm_page(bpm_number):

@@ -15,7 +15,10 @@ def recommend_songs(curr_song, songs, model, top_n = 5):
         "bpm": option["bpm"],
         "year": option["year"],
         "genre": option["genre"],
-        "score": float(score)})
+        "score": float(score),
+        "songA": curr_song["title"],
+        "songB": option["title"],
+        "reason": explain_recommendation(curr_song, option)})
     recommendations.sort(key = lambda item: item["score"],reverse = True)
     return recommendations[:top_n]
 def explain_recommendation(a,b):
