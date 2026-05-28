@@ -39,7 +39,7 @@ function App() {
     } catch (requestError) {
       const message =
         requestError instanceof TypeError
-          ? 'Backend API is not reachable. Start Flask on http://localhost:5000 and try again.'
+          ? 'Backend API is not reachable. Start Flask on http://localhost:5001 and try again.'
           : requestError.message
 
       setError(message)
