@@ -1,6 +1,7 @@
 import numpy as np
 from song_similarity import compare_songs
 import tensorflow as tf
+from deezer_api import add_deezer_preview
 
 model = tf.keras.models.load_model("transition_model.keras")
 def recommend_songs(curr_song, songs, model, top_n=5):
@@ -44,7 +45,6 @@ def recommend_songs(curr_song, songs, model, top_n=5):
         )
 
         final_score = min(final_score, 0.95)
-
         recommendations.append({
             "artist": option["artist"],
             "title": option["title"],
@@ -55,7 +55,10 @@ def recommend_songs(curr_song, songs, model, top_n=5):
             "model_score": float(score),
             "songA": curr_song["title"],
             "songB": option["title"],
-            "reason": explain_recommendation(curr_song, option)
+            "reason": explain_recommendation(curr_song, option),
+            "preview_url": option.get("preview_url"),
+            "deezer_url": option.get("deezer_url"),
+            "album_image": option.get("album_image"),
         })
     recommendations.sort(key=lambda item: item["score"], reverse=True)
     return recommendations[:top_n]

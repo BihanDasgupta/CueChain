@@ -8,7 +8,7 @@ from recommender import model, recommend_songs
 from songs import songs
 from store_transitions import store_transition
 from soundchart_api import get_song
-
+from deezer_api import add_deezer_preview
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -76,6 +76,9 @@ def prepare_transition_edge(curr_song, recommendation):
         "genre": recommendation["genre"],
         "bpm": recommendation["bpm"],
         "score": recommendation["score"],
+        "preview_url": recommendation.get("preview_url"),
+        "deezer_url": recommendation.get("deezer_url"),
+        "album_image": recommendation.get("album_image"),
         "stored_on_chain": stored_on_chain,
         "signature": signature,
     }
@@ -100,6 +103,7 @@ def predict():
     title=song_title,
     songs=songs
     )
+    curr_song = add_deezer_preview(curr_song)
     if not curr_song:
         return jsonify({"error": f"Song not found: {song_title}"}), 404
 
@@ -123,13 +127,22 @@ def predict():
             "song": curr_song["title"],
             "recommendations": remembered_recommendations,
         })
-
+    print("Starting recommendations...")
     raw_recommendations = recommend_songs(
         curr_song,
         songs,
         model,
         top_n=CANDIDATE_POOL_SIZE,
     )
+    print("Recommendations done.")
+    print("Adding Deezer previews...")
+    raw_recommendations = [
+    add_deezer_preview(recommendation)
+    for recommendation in raw_recommendations
+    ]
+    print("First recommendation after Deezer:")
+    print(raw_recommendations[0])
+    print("Deezer previews done.")
     discovered_edges = [
         prepare_transition_edge(curr_song, recommendation)
         for recommendation in raw_recommendations
@@ -153,6 +166,15 @@ def predict():
     return jsonify({
         "retrieved_from_memory": False,
         "song": curr_song["title"],
+        "current_song": {
+             "title": curr_song["title"],
+             "artist": curr_song["artist"],
+             "bpm": curr_song["bpm"],
+             "genre": curr_song["genre"],
+             "preview_url": curr_song.get("preview_url"),
+             "deezer_url": curr_song.get("deezer_url"),
+             "album_image": curr_song.get("album_image")
+             },
         "recommendations": recommendations,
     })
 

@@ -5,6 +5,7 @@ const API_URL = 'http://localhost:5001/predict'
 function App() {
   const [search, setSearch] = useState('')
   const [currentSong, setCurrentSong] = useState('')
+  const [currentSongData, setCurrentSongData] = useState(null)
   const [history, setHistory] = useState([])
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(false)
@@ -34,6 +35,7 @@ function App() {
       resolvedHistory[resolvedHistory.length - 1] = resolvedSong
 
       setCurrentSong(resolvedSong)
+      setCurrentSongData(data.current_song || null)
       setHistory(resolvedHistory)
       setRecommendations(data.recommendations || [])
     } catch (requestError) {
@@ -69,6 +71,7 @@ function App() {
   function handleRestart() {
     setSearch('')
     setCurrentSong('')
+    setCurrentSongData(null)
     setHistory([])
     setRecommendations([])
     setError('')
@@ -105,6 +108,21 @@ function App() {
           <div>
             <p className="eyebrow">Current Selection</p>
             <h2>{currentSong || 'Start with a song search!'}</h2>
+            {currentSongData?.preview_url ? (
+            <div className="audio-preview" onClick={(event) => event.stopPropagation()}>
+              <audio controls src={currentSongData.preview_url}>
+                Your browser does not support audio playback.
+              </audio>
+            </div>
+          ) : currentSongData?.deezer_url ? (
+            <a
+              href={currentSongData.deezer_url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open current song on Deezer
+            </a>
+          ) : null}
           </div>
         </div>
 
@@ -151,6 +169,24 @@ function App() {
                   <div className="metadata">
                     <span>{recommendation.genre}</span>
                     <span>{recommendation.bpm} BPM</span>
+                  </div>
+                  <div className="audio-preview" onClick={(event) => event.stopPropagation()}>
+                    {recommendation.preview_url ? (
+                      <audio controls src={recommendation.preview_url}>
+                        Your browser does not support audio playback.
+                      </audio>
+                    ) : recommendation.deezer_url ? (
+                      <a
+                        href={recommendation.deezer_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        Open on Deezer
+                      </a>
+                    ) : (
+                      <p className="preview-unavailable">Preview unavailable</p>
+                    )}
                   </div>
                   <div className="chain-status">
                     {recommendation.stored_on_chain
