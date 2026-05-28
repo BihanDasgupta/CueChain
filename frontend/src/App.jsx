@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 
-const API_URL = 'http://localhost:5000/predict'
-
+const API_URL = 'http://localhost:5001/predict'
 function App() {
   const [search, setSearch] = useState('')
   const [currentSong, setCurrentSong] = useState('')

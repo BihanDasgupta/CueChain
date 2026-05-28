@@ -7,10 +7,17 @@ from flask_cors import CORS
 from recommender import model, recommend_songs
 from songs import songs
 from store_transitions import store_transition
+from soundchart_api import get_song
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
+@app.after_request
+def after_request(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
+    return response
 
 transition_memory = {}
 THRESHOLD = 0.85
@@ -28,11 +35,6 @@ def find_song(title):
     for song in songs:
         if search_title in song["title"].lower():
             return song
-
-    cutoff = 0.5 if len(search_title) <= 3 else 0.6
-    close_matches = get_close_matches(search_title, title_lookup.keys(), n=1, cutoff=cutoff)
-    if close_matches:
-        return title_lookup[close_matches[0]]
 
     return None
 
@@ -79,15 +81,25 @@ def prepare_transition_edge(curr_song, recommendation):
     }
 
 
-@app.post("/predict")
+@app.route("/predict", methods=["POST", "OPTIONS"])
 def predict():
+    if request.method == "OPTIONS":
+        response = jsonify({"status": "ok"})
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+        response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
+        return response, 200
+
     data = request.get_json(silent=True) or {}
     song_title = data.get("song", "").strip()
 
     if not song_title:
         return jsonify({"error": "Song title is required."}), 400
 
-    curr_song = find_song(song_title)
+    curr_song = get_song(
+    title=song_title,
+    songs=songs
+    )
     if not curr_song:
         return jsonify({"error": f"Song not found: {song_title}"}), 404
 
@@ -146,4 +158,4 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=False)

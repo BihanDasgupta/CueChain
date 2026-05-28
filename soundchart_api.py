@@ -65,6 +65,26 @@ def get_soundcharts_metadata(song_uuid):
     response.raise_for_status()
     return response.json()
 
+def normalize_genre(genre):
+    genre = genre.lower().strip()
+
+    if genre in ["electro", "electronic", "edm", "house", "dance"]:
+        return "Dance"
+
+    if genre in ["pop"]:
+        return "CHR"
+
+    if genre in ["hip hop", "hip-hop", "rap", "r&b", "rnb", "urban"]:
+        return "Urban"
+
+    if genre in ["rock", "alternative", "metal", "punk"]:
+        return "Rock"
+
+    if genre in ["country"]:
+        return "Country"
+
+    return genre.title()
+
 def convert_to_song_format(metadata):
     song_data = metadata.get("object", metadata.get("song", metadata))
     title = (
@@ -105,6 +125,7 @@ def convert_to_song_format(metadata):
             genre = str(first_genre)
     else:
         genre = "Unknown"
+    genre = normalize_genre(genre)
     audio_features = (
         song_data.get("audio")
         or song_data.get("audioFeatures")
